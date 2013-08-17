@@ -83,11 +83,11 @@ define(
      window.zoomedIn = false;
    }
 
-    var aspectRatio =  window.innerHeight / window.innerWidth;
+    var aspectRatio =  this.canvas.height / this.canvas.width;
 
     var dest = {
-      x: this.viewport.x - (50 * delta * event.pageX / window.innerWidth)
-    , y: this.viewport.y - (50 * delta * (event.pageY - 100)/ window.innerHeight * aspectRatio)
+      x: this.viewport.x - (50 * delta * event.pageX / this.canvas.width)
+    , y: this.viewport.y - (50 * delta * (event.pageY - 100)/ this.canvas.height * aspectRatio)
     , w: this.viewport.w + (50 * delta)
     , h: this.viewport.h + (50 * delta * aspectRatio)
     }
@@ -95,27 +95,27 @@ define(
     // clamp.
     if(dest.x < 0)
       dest.x = 0;
-    else if(dest.x > window.innerWidth - 32)
-      dest.x = window.innerWidth - 32;
+    else if(dest.x > this.canvas.width - Config.TILE_SIZE)
+      dest.x = this.canvas.width - Config.TILE_SIZE;
 
     if(dest.y < 0)
       dest.y = 0;
-    else if(dest.y > window.innerHeight - 32)
-      dest.y = window.innerHeight - 32;
+    else if(dest.y > this.canvas.height - Config.TILE_SIZE)
+      dest.y = this.canvas.height - Config.TILE_SIZE;
 
-    if(dest.x + dest.w > window.innerWidth)
-      dest.w = window.innerWidth - dest.x
-    else if(dest.w < 32 && this.viewport.w == 32)
+    if(dest.x + dest.w > this.canvas.width)
+      dest.w = this.canvas.width - dest.x
+    else if(dest.w < Config.TILE_SIZE && this.viewport.w == Config.TILE_SIZE)
       return;
-    else if(dest.w < 32)
-      dest.w = 32
+    else if(dest.w < Config.TILE_SIZE)
+      dest.w = Config.TILE_SIZE
 
-    if(dest.y + dest.h > window.innerHeight)
-      dest.h = window.innerHeight - dest.y
-    else if(dest.h < 32 && this.viewport.h == 32)
+    if(dest.y + dest.h > this.canvas.height)
+      dest.h = this.canvas.height - dest.y
+    else if(dest.h < Config.TILE_SIZE && this.viewport.h == Config.TILE_SIZE)
       return;
-    else if(dest.h < 32)
-      dest.h = 32
+    else if(dest.h < Config.TILE_SIZE)
+      dest.h = Config.TILE_SIZE
 
     //console.log(dest);
     this.zoomToRect(Math.round(dest.x), Math.round(dest.y), Math.round(dest.w), Math.round(dest.h), 100);    
@@ -140,7 +140,7 @@ define(
     this.canvas.height=  window.innerHeight - 100;
 
     this.context = this.canvas.getContext('2d');
-    this.context.strokeStyle = '#333333';
+    this.context.strokeStyle = '#aaaaaa';
     this.context.lineWidth = 1;
 
     // disable image smoothing. even though it barely works.
@@ -148,19 +148,17 @@ define(
     this.context.webkitImageSmoothingEnabled = false;
     this.context.mozImageSmoothingEnabled = false;
 
+    var maxw = this.canvas.width > 50 * Config.TILE_SIZE ? 50 * Config.TILE_SIZE : this.canvas.width;
+    var maxh = this.canvas.height > 50 * Config.TILE_SIZE ? 50 * Config.TILE_SIZE : this.canvas.height;
+
     this.viewport = {
         x: 0
       , y: 0
-      , w: window.innerWidth
-      , h: window.innerHeight - 100
+      , w: maxw
+      , h: maxh
     }
 
-
-
-    /*setTimeout(function() {
-      that.zoomToRect(500, 500, 32, 32, 1000);
-    }, 1000)*/
-
+    console.log(this.viewport)
     return this;
   }
 
@@ -232,20 +230,18 @@ define(
 
   view.paintTile = function(tileView) {
     var that = this;
-    var scaleX = window.innerWidth / that.viewport.w;
-    var scaleY = window.innerHeight / that.viewport.h;    
-
-    console.log('scaleX', scaleX, scaleY)
+    var scaleX = that.canvas.width / that.viewport.w;
+    var scaleY = that.canvas.height / that.viewport.h;    
 
     var topLeft = that.tileFromPoint(0,0);
-    var bottomRight = that.tileFromPoint(window.innerWidth,window.innerHeight, true)
+    var bottomRight = that.tileFromPoint(that.canvas.width,that.canvas.height, true)
     var offset = {
       x: topLeft.x - Math.floor(topLeft.x) 
     , y: topLeft.y - Math.floor(topLeft.y)
     }
 
-    var width = 32 * scaleX;
-    var height = 32 * scaleY;
+    var width = Config.TILE_SIZE * scaleX;
+    var height = Config.TILE_SIZE * scaleY;
     var startX = Math.floor((-offset.x) * width);
     var startY = Math.floor((-offset.y) * height);    
 
@@ -266,11 +262,11 @@ define(
   view.paintViewport = function() {
 
     var that = this;
-    var scaleX = window.innerWidth / that.viewport.w;
-    var scaleY = window.innerHeight / that.viewport.h;
+    var scaleX = this.canvas.width / that.viewport.w;
+    var scaleY = this.canvas.height / that.viewport.h;
 
     var topLeft = that.tileFromPoint(0,0);
-    var bottomRight = that.tileFromPoint(window.innerWidth,window.innerHeight, true)
+    var bottomRight = that.tileFromPoint(this.canvas.width,this.canvas.height, true)
     var offset = {
       x: topLeft.x - Math.floor(topLeft.x) 
     , y: topLeft.y - Math.floor(topLeft.y)
@@ -279,8 +275,8 @@ define(
     topLeft.y = Math.floor(topLeft.y);
 
     var n = 0;
-    var width = 32 * scaleX;
-    var height = 32 * scaleY;
+    var width = Config.TILE_SIZE * scaleX;
+    var height = Config.TILE_SIZE * scaleY;
     var startX = Math.floor((-offset.x) * width);
     var startY = Math.floor((-offset.y) * height);
 
@@ -295,7 +291,8 @@ define(
                 ,y: startY + Math.floor(y * height)
                 ,w: Math.ceil(width)
                 ,h: Math.ceil(height) }
-        v.drawTile(
+
+          v.drawTile(
                   that.context
                 , startX + Math.floor(x * width)
                 , startY + Math.floor(y * height)
@@ -322,29 +319,29 @@ define(
   view.zoomToTile = function(x, y, duration) {
 
     this.zoomToRect(
-      x * 32 - 3
-    , y * 32 - 3
-    , 38
-    , 38
+      x * Config.TILE_SIZE - 3
+    , y * Config.TILE_SIZE - 3
+    , Config.TILE_SIZE + 6
+    , Config.TILE_SIZE + 6
     , duration)
 
   }
 
   view.tileFromPoint = function(x, y, floor) {
 
-    var xpct = x / window.innerWidth;
-    var ypct = y / window.innerHeight;
+    var xpct = x / this.canvas.width;
+    var ypct = y / this.canvas.height;
 
     //console.log('pct', xpct, ypct)
 
-    x = (this.viewport.x + (this.viewport.w * xpct)) / 32;
-    y = (this.viewport.y + (this.viewport.h * ypct)) / 32;
+    x = (this.viewport.x + (this.viewport.w * xpct)) / Config.TILE_SIZE;
+    y = (this.viewport.y + (this.viewport.h * ypct)) / Config.TILE_SIZE;
 
     var floorX = Math.floor(x);
     var floorY = Math.floor(y);
 
-    var tileX = Math.floor((x - floorX) * 32);
-    var tileY = Math.floor((y - floorY) * 32);
+    var tileX = Math.floor((x - floorX) * Config.TILE_SIZE);
+    var tileY = Math.floor((y - floorY) * Config.TILE_SIZE);
 
     //console.log('surface', x, y)
 
@@ -370,7 +367,7 @@ define(
         var tileRed = y*5;
 
         var tileData = [];
-        for(var n=0; n < 32 * 32 * 4; n+=4) {
+        for(var n=0; n < Config.TILE_SIZE * Config.TILE_SIZE * 4; n+=4) {
           tileData[n] = tileRed;
           tileData[n + 1] = 0;
           tileData[n + 2] = tileBlue;
@@ -392,14 +389,16 @@ define(
       for(var y = 0; y < 50; y++) {    
 
         var tileData = [];
-        for(var n=0; n < 32 * 32 * 4; n+=4) {
+        for(var n=0; n < Config.TILE_SIZE * Config.TILE_SIZE * 4; n+=4) {
           tileData[n] = 255;
           tileData[n + 1] = 255;
           tileData[n + 2] = 255;
           tileData[n + 3] = 255;
         }
+        var model = new TileModel({ tileData: tileData, id: x + '_' + y, x: x, y: y });
+        model.tileData = tileData;
 
-        this.blankTile = new TileModel({ tileData: tileData, id: x + '_' + y, x: x, y: y });
+        this.blankTile = new TileView({model: model}) 
       }
     }
     console.log('init-blank-tiles done')
@@ -409,6 +408,7 @@ define(
     var that = this;
     _.bindAll(this);
 
+    this.initializeBlankTile();
     this.myTile = window.myTile;
 
     this.tiles = new TilesCollection();

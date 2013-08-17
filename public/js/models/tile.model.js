@@ -2,8 +2,9 @@ define(
   [
     'underscore'
   , 'backbone'
+  , 'config'
   ]
-, function(_, Backbone) {
+, function(_, Backbone, Config) {
   
   var model = {};
   
@@ -51,12 +52,12 @@ define(
   }
 
   model.setPixel = function(x,y,r,g,b,a,silent) {
-    
+
     console.log('SETPIXEL', x, y, r, g, b, a)
-    this.tileData[(y * 32 * 4 + x * 4)] = r;
-    this.tileData[(y * 32 * 4 + x * 4) + 1] = g;
-    this.tileData[(y * 32 * 4 + x * 4) + 2] = b;
-    this.tileData[(y * 32 * 4 + x * 4) + 2] = a;
+    this.tileData[(y * Config.TILE_SIZE * 4 + x * 4)] = r;
+    this.tileData[(y * Config.TILE_SIZE * 4 + x * 4) + 1] = g;
+    this.tileData[(y * Config.TILE_SIZE * 4 + x * 4) + 2] = b;
+    this.tileData[(y * Config.TILE_SIZE * 4 + x * 4) + 2] = a;
     this.set('pixelx', x)
     this.set('pixely', y)
     this.set('pixel', [r,g,b,a]);    

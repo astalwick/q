@@ -62,7 +62,7 @@ var io = require('socket.io').listen(server);
  * and collection ioBinds will pick up these events
  */
 
-var TILE_SIZE = 32;
+var TILE_SIZE = 16;
 
 io.sockets.on('connection', function (socket) {
 
@@ -82,7 +82,7 @@ io.sockets.on('connection', function (socket) {
       var y = values[1];
 
       tile_data = {
-        run: 1024,
+        run: TILE_SIZE*TILE_SIZE,
         data: [255,255,255,255]
       }
 

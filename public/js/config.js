@@ -5,7 +5,7 @@ define(
   var exports  = {};
 
   (function () {
-    this.TILE_SIZE = 32;
+    this.TILE_SIZE = 16;
     this.TILES_X = 50;
     this.TILES_Y = 50;
 
