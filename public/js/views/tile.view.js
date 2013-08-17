@@ -37,11 +37,14 @@ define(
   /* ======================================================================= *
    *  PUBLIC CLASS METHODS                                                   *
    * ======================================================================= */
-  view.click = function(x, y) {
-    this.imageData.data[(y * 32 * 4 + x * 4)] = 0;
-    this.imageData.data[(y * 32 * 4 + x * 4) + 1] = 0;
-    this.imageData.data[(y * 32 * 4 + x * 4) + 2] = 0;
+  view.click = function(x, y, r, g, b, a) {
+    this.imageData.data[(y * 32 * 4 + x * 4)] = r;
+    this.imageData.data[(y * 32 * 4 + x * 4) + 1] = g;
+    this.imageData.data[(y * 32 * 4 + x * 4) + 2] = b;
+    this.imageData.data[(y * 32 * 4 + x * 4) + 2] = a;
     this.context.putImageData(this.imageData,0,0);
+
+    this.model.setPixel(x,y,r,g,b,a)
 
     Backbone.trigger('PaintTile', this);
   }

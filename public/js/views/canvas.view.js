@@ -53,7 +53,7 @@ define(
   view.onClick = function(event) {
     xy = this.tileFromPoint(event.pageX, event.pageY, true);
     console.log('TILE CLICK', xy)
-    this.tileViews[xy.x + '_' + xy.y].click(xy.tileX, xy.tileY);
+    this.tileViews[xy.x + '_' + xy.y].click(xy.tileX, xy.tileY, 0, 0, 0, 255);
   }
 
   view.onMousewheel = function(event, delta) {

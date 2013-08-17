@@ -142,24 +142,45 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('tiles:update', function (data, callback) {
+    console.log('UPDATE', data)
+
+    // CUT MY LOSSES:
+    // we'll just fully update.
+
+
+    redis_client.hset('TILE_DATA', data.id, JSON.stringify(data.tileData), function(err) {
+      if(err)
+        return console.error('failed to set tile ', data.id)
+
+      socket.broadcast.emit('tiles/' + data.id + ':update', data);
+      callback(null, {id: data.id});
+    });
+  });
+
+    /*
     redis_client.hget('TILE_DATA', data.id, function(err, result) {
 
-      result = JSON.parse(result);
+      
       if(!result)
         return console.error('NO SUCH TILE, ', data.id)
+
+      result = JSON.parse(result);
+      var tileData = QuickUnRLE(result);
+      console.log('UPDATE TILEDATA LENGTH', tileData.length)
+
       // need to update the tile pixel.
       var xy = data.id.split('_');
       var x = xy[0];
-      var y = xy[1];
+      var y = xy[1];      
 
-      var tileData = QuickUnRLE(result);
-
-      tileData[y * TILE_SIZE + x]       = data.pixel[0];
-      tileData[y * TILE_SIZE + x + 1]   = data.pixel[1];
-      tileData[y * TILE_SIZE + x + 2]   = data.pixel[2];
-      tileData[y * TILE_SIZE + x + 3]   = data.pixel[3];
+      tileData[(y * TILE_SIZE * 4) + (x * 4)]       = data.pixel[0];
+      tileData[(y * TILE_SIZE * 4) + (x * 4) + 1]   = data.pixel[1];
+      tileData[(y * TILE_SIZE * 4) + (x * 4) + 2]   = data.pixel[2];
+      tileData[(y * TILE_SIZE * 4) + (x * 4) + 3]   = data.pixel[3];
 
       result = QuickRLE(tileData);
+
+      console.log('UPDATE RLE RESULT', result);
 
       redis_client.hset('TILE_DATA', data.id, JSON.stringify(result), function(err) {
         if(err)
@@ -169,7 +190,7 @@ io.sockets.on('connection', function (socket) {
         callback(null, {id: data.id});
       })
     })
-  });
+  });*/
 });
 
 dir = 0;
@@ -258,19 +279,20 @@ for(var x = 0; x < 50; x++) {
 }
 
 function QuickUnRLE(rleData) {
-  var tileData = []
+    var tileData = []
+    var n = 0;
+    for(var i = 0; i < rleData.length; i++) {
+      for(var j = 0; j < rleData[i].run; j++) {
+        var d = rleData[i].data;
+        tileData[n++] = d[0]
+        tileData[n++] = d[1]
+        tileData[n++] = d[2]
+        tileData[n++] = d[3]
 
-  for(var i = 0; i < rleData.length; i++) {
-
-    for(var j = 0; j < rleData[i].run; j++) {
-      tileData.push(rleData[i].data[0])
-      tileData.push(rleData[i].data[1])
-      tileData.push(rleData[i].data[2])
-      tileData.push(rleData[i].data[3])
+      }
     }
-  }
 
-  return tileData;
+    return tileData;
 }
 
 function QuickRLE(tileData) {
@@ -288,13 +310,15 @@ function QuickRLE(tileData) {
       last[3] = tileData[i + 3];
       run = 1;
     }
-    else if( last[0] != tileData[i] &&
-      last[1] != tileData[i + 1] &&
-      last[2] != tileData[i + 2] &&
+    else if( 
+      last[0] != tileData[i] ||
+      last[1] != tileData[i + 1] ||
+      last[2] != tileData[i + 2] ||
       last[3] != tileData[i + 3]) {
 
       // no match.
       // push it into the rleTileData objects
+
       rleTileData.push({
         data: last  
       , run: run
@@ -302,27 +326,24 @@ function QuickRLE(tileData) {
 
       // this pixel is different.
       // start a new run.
-      if(i+3 < tileData.length) {
-        run = 1;
-        last = []
+      //if(i+3 < tileData.length) {
+      run = 1;
+      last = []
 
-        last[0] = tileData[i];
-        last[1] = tileData[i + 1];
-        last[2] = tileData[i + 2];
-        last[3] = tileData[i + 3];
-      }
-    }
-    else if(i + 4 == tileData.length) {
-      run++;
-      rleTileData.push({
-        data: last  
-      , run: run
-      })
+      last[0] = tileData[i];
+      last[1] = tileData[i + 1];
+      last[2] = tileData[i + 2];
+      last[3] = tileData[i + 3];
+      //}
     }
     else {
       run++;
     }
   }
+  rleTileData.push({
+    data: last  
+  , run: run
+  })  
   return rleTileData;
 }
 
