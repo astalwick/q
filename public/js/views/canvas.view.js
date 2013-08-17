@@ -3,17 +3,12 @@ define(
     'underscore'
   , 'backbone'
 
-  , 'views/canvas.view'
-
   , 'templates'
   ]
 
 , function (
   _
 , Backbone
-
-, CanvasView
-
 , Templates
 ){
 
@@ -22,6 +17,7 @@ define(
   /* ======================================================================= *
    *  ATTRIBUTES                                                             *
    * ======================================================================= */
+  view.tagName = 'canvas'
 
   /* ======================================================================= *
    *  EVENTS                                                                 *
@@ -42,8 +38,7 @@ define(
    *  PUBLIC CLASS METHODS                                                   *
    * ======================================================================= */
   view.render = function() {
-    
-    this.$el.append(this.canvasView.render().el)
+    this.$el.html(jade.render('canvas.view'));
     return this;
   }
 
@@ -53,7 +48,6 @@ define(
   view.initialize = function(options) {
     var that = this;
     _.bindAll(this);
-    this.canvasView = new CanvasView();
   }
 
   /* ======================================================================= */
