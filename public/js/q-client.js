@@ -23,6 +23,7 @@ define(
     // Connect up!
     Backbone.socket = io.connect();
     // Initialize
+    
     var page = new PageView( {
       el: $('body')
     });

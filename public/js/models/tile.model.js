@@ -51,6 +51,7 @@ define(
   }
 
   model.setPixel = function(x,y,r,g,b,a,silent) {
+    
     console.log('SETPIXEL', x, y, r, g, b, a)
     this.tileData[(y * 32 * 4 + x * 4)] = r;
     this.tileData[(y * 32 * 4 + x * 4) + 1] = g;

@@ -1,10 +1,14 @@
+
 !!!
 html
   head
-    title= title
+    title= locals.title
+
     script(src='/vendors/require.js')
     script
-      var cacheBust = 1;
+      var cacheBust = 5;
+      window.myTile = !{JSON.stringify(locals.myTile)}
+
       require.config({
           baseUrl: "/js"
         , waitSeconds: 15
@@ -46,4 +50,4 @@ html
     link(rel='stylesheet', href='/vendors/flat-ui/css/flat-ui.css')
     link(rel='stylesheet', href='/vendors/flat-ui/css/flat-ui.css')
     link(rel='stylesheet', href='/css/main.css')
-  body
+  body.welcome

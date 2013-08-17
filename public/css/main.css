@@ -12,8 +12,145 @@ body, html, div {
   padding: 0px;
   border:0 none;
   overflow:hidden;
+  
+}
+body{
+  min-width: 600px;
 }
 
 canvas {
+  background-color: black;
+  position: absolute;
+  top: 100px;
+}
+
+.dock {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100px;
+  box-shadow: 0 0 3px gray;
   background-color: white;
+}
+
+.dock .picker {
+  position: absolute;
+
+  left: 420px;
+  width: 320px;
+}
+
+
+.dock .brand {
+  float: left;
+  font-size: 80px;
+  width: 100px;
+  line-height: 67px;
+  padding: 10px;
+
+}
+
+.dock .content {
+  padding: 10px;
+  display: inline-block;
+}
+
+.dock .picker .picker-row {
+  height: 40px;
+  top:0;
+  margin:0;
+  padding:0;
+  display:block;
+}
+
+.dock .picker .color {
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+}
+
+.color.ad {
+  background-color: #003e58;
+}
+.color.bd {
+  background-color: #05dbf5;
+}
+.color.cd {
+  background-color: #42f0f6;
+}
+.color.dd {
+  background-color: #583f2a;
+}
+.color.ed {
+  background-color: #3c200b;
+}
+.color.fd {
+  background-color: #003e58;
+}
+.color.gd {
+  background-color: #05dbf5;
+}
+.color.hd {
+  background-color: #42f0f6;
+}
+
+.color.al {
+  background-color: #583f2a;
+}
+.color.bl {
+  background-color: #003e58;
+}
+.color.cl {
+  background-color: #003e58;
+}
+.color.dl {
+  background-color: #05dbf5;
+}
+.color.el {
+  background-color: #42f0f6;
+}
+.color.fl {
+  background-color: #583f2a;
+}
+.color.gl {
+  background-color: #003e58;
+}
+.color.hl {
+  background-color: black;
+}
+
+
+.content {
+  overflow:hidden;
+}
+
+.content .message {
+  position: absolute;
+  top:0;
+  left:100px;
+  width: 320px;
+  /*display: none;*/
+}
+.content .picker {
+  display: inline-block;
+}
+
+.content .message {
+  padding: 10px;
+  visibility: hidden;
+}
+
+body.welcome .content .message.welcome{
+  visibility: visible;
+
+}
+
+body.zoomed-in .content .message.choose-color{
+
+  visibility: visible;
+}
+
+
+body.zoomed-out .content .message.zoom-back-in{
+  visibility: visible;
 }

@@ -1,16 +1,18 @@
 TODO
 
-
-
 - wire up collection read (DONE)
 - RLE encode tileData (DONE)
 - wire up setpixel (DONE)
 - iobind (DONE)
-- create the color picker dock
-- permissions: only edit YOUR tile.
-- create the 'zoom to tile' button
-- create the 'welcome' message
-- select color palette
+- create the 'welcome' message (DONE)
+- create the color picker dock (DONE)
+- select color palette (SORT OF DONE)
+- permissions: only edit YOUR tile. (DONE)
+- create the 'zoom to tile' button (DONE)
+
+
 - pixel aspect ratio (should be fixed)
 - add setpixel automirror
 - optimize page load
+  - reduce number of tiles loaded from 50x50 to 25x25, and make the min zoom 2x.
+  - reduce pixels per tile to 16.

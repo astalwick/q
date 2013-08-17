@@ -3,9 +3,6 @@ define(
     'underscore'
   , 'backbone'
 
-  , 'views/canvas.view'
-  , 'views/dock.view'
-
   , 'templates'
   ]
 
@@ -13,13 +10,11 @@ define(
   _
 , Backbone
 
-, CanvasView
-, DockView
-
 , Templates
 ){
 
   var view = {};
+  view.className = 'dock'
 
   /* ======================================================================= *
    *  ATTRIBUTES                                                             *
@@ -30,11 +25,90 @@ define(
    * ======================================================================= */
 
   view.events = {
+    'click .color'        : 'onSelectColor'
+  , 'click .get-started'  : 'onZoomToTile'
+  , 'click .take-me-back' : 'onZoomToTile'
   }
 
   /* ======================================================================= *
    *  EVENT HANDLERS                                                         *
    * ======================================================================= */  
+  view.onZoomToTile = function(e) {
+    Backbone.trigger('ZoomToTile');
+    $('body').removeClass('zoomed-out zoomed-in welcome');
+    window.zoomedIn = true;
+    $('body').addClass('zoomed-in');
+  }
+
+  view.onSelectColor = function(e) {
+    var className = e.currentTarget.className;
+    var color = className.split(' ')[1];
+    var hex;
+    switch(color) {
+      case 'ad':
+        hex = '#003e58';
+        break;
+      case 'bd':
+        hex = '#05dbf5';
+        break;
+      case 'cd':
+        hex = '#42f0f6';
+        break;
+      case 'dd':
+        hex = '#583f2a';
+        break;
+      case 'ed':
+        hex = '#3c200b';
+        break;
+      case 'fd':
+        hex = '#003e58';
+        break;
+      case 'gd':
+        hex = '#05dbf5';
+        break;
+      case 'hd':
+        hex = '#42f0f6';
+        break;
+      case 'al':
+        hex = '#583f2a';
+        break;
+      case 'bl':
+        hex = '#3c200b';
+        break;
+      case 'cl':
+        hex = '#003e58';
+        break;
+      case 'dl':
+        hex = '#05dbf5';
+        break;
+      case 'el':
+        hex = '#42f0f6';
+        break;
+      case 'fl':
+        hex = '#583f2a';
+        break;
+      case 'gl':
+        hex = '#3c200b';
+        break;        
+      case 'hl':
+        hex = '#ffffff'
+        break;                  
+    }
+
+    function hexToRgb(hex) {
+      var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16)
+      } : null;
+    }
+
+    var rgb = hexToRgb(hex);
+
+    Backbone.trigger('Color', rgb.r, rgb.g, rgb.b, 255);
+
+  }
 
   /* ======================================================================= *
    *  PRIVATE CLASS METHODS                                                  *
@@ -44,8 +118,7 @@ define(
    *  PUBLIC CLASS METHODS                                                   *
    * ======================================================================= */
   view.render = function() {
-    this.$el.append(this.dockView.render().el)
-    this.$el.append(this.canvasView.render().el)
+    this.$el.html(jade.render('dock.view'))
     return this;
   }
 
@@ -55,8 +128,6 @@ define(
   view.initialize = function(options) {
     var that = this;
     _.bindAll(this);
-    this.canvasView = new CanvasView();
-    this.dockView = new DockView();
   }
 
   /* ======================================================================= */

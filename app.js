@@ -66,6 +66,7 @@ var TILE_SIZE = 32;
 
 io.sockets.on('connection', function (socket) {
 
+/*
   socket.on('tiles:create', function (data, callback) {
     // find a tile that is not taken,
     // mark it as taken,
@@ -77,32 +78,25 @@ io.sockets.on('connection', function (socket) {
     multi.exec(function(err, values) {
       if(err)
         return console.error(err);
-
       var x = values[0];
       var y = values[1];
 
-      var tile_data = [];
-      // initialize the tile.
-      for(var i = 0; i < TILE_SIZE * TILE_SIZE * 4; i++)
-        tile_data.push(255);
+      tile_data = {
+        run: 1024,
+        data: [255,255,255,255]
+      }
 
-      redis_client.hset('TILE_DATA', x + '_' + y, tile_data, function(err) {
-        if(err)
-          console.error(err);
-      })
-
-      
+      redis_client.hset('TAKEN_TILES', x+'_'+y, 'true');
 
       // echo the response
       callback(null, {id: x + '_' + y, tileData: tile_data, x: x, y: y})
       socket.broadcast.emit('tiles:create', {id: x + '_' + y, tileData: tile_data, x: x, y: y});
       socket.emit('tiles:create', {id: x + '_' + y, tileData: tile_data, x: x, y: y});
 
-      console.log('SAVED MY TILE', x, y)
       chooseNextFreeTile(x,y);
     })
 
-  });
+  });*/
 
   socket.on('tiles:read', function (data, callback) {
     /* do something to 'read' the whatever */
@@ -229,7 +223,7 @@ function chooseNextFreeTile(x, y) {
   async.doWhilst(function(callback) {
     x += dirX;
     y += dirY;
-    redis_client.hexists('TILE_DATA', x + '_' + y, function(err, result) {
+    redis_client.hexists('TAKEN_TILES', x + '_' + y, function(err, result) {
       console.log(err, result);
       exists = !!result;
       callback(err);
@@ -249,30 +243,57 @@ function chooseNextFreeTile(x, y) {
 }
 
 // Routes
-app.get('/', routes.index);
+app.get('/', function(req, res){
+
+  var multi = redis_client.multi();
+  multi.get('NEXT_FREE_TILE_X');
+  multi.get('NEXT_FREE_TILE_Y');
+  multi.exec(function(err, values) {
+    if(err)
+      return console.error(err);
+    var x = values[0];
+    var y = values[1];
+
+    redis_client.hset('TAKEN_TILES', x+'_'+y, 'true');
+
+    // echo the response
+    chooseNextFreeTile(x,y);
+    res.render('index', { locals: {myTile: { x: x, y: y }, title: 'Q - Collaborative Pixel Art'}, layout: false });
+  })  
+  
+});
 
 redis_client.get('NEXT_FREE_TILE_X', function(err, value) {
   if(!value) {
     var multi = redis_client.multi();
-    multi.set('NEXT_FREE_TILE_X', '25')
-    multi.set('NEXT_FREE_TILE_Y', '25')
+    multi.set('NEXT_FREE_TILE_X', '10')
+    multi.set('NEXT_FREE_TILE_Y', '10')
     multi.exec();
   }
 })
 
+
 // initialize some fake tile data.
 for(var x = 0; x < 50; x++) {
+
+  
   var tileBlue = x*5;
    
   for(var y = 0; y < 50; y++) {    
     var tileRed = y*5;
 
     var tileData = [];
-    for(var n=0; n < 32 * 32 * 4; n+=4) {
-      tileData[n] = tileRed;
+    for(var n=0; n < TILE_SIZE * TILE_SIZE * 4; n+=4) {
+      /*tileData[n] = tileRed;
       tileData[n + 1] = 0;
       tileData[n + 2] = tileBlue;
+      tileData[n + 3] = 255;*/
+
+      tileData[n] = 255;
+      tileData[n + 1] = 255;
+      tileData[n + 2] = 255;
       tileData[n + 3] = 255;
+
     }
     redis_client.hset('TILE_DATA', x+'_'+y, JSON.stringify(QuickRLE(tileData)) );
   }

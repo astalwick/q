@@ -45,24 +45,49 @@ define(
     this.tileViews[model.id] = new TileView({model: model});
   }
 
+  view.onZoomToUserTile = function() {
+    this.zoomToTile(this.myTile.x, this.myTile.y, 2000);
+
+
+  }
+
   view.onPaintTile = function(tileView) {
     this.paintTile(tileView);
 
   }
 
+  view.onColorChange = function(r,g,b) {
+
+    this.currentColor.r = r;
+    this.currentColor.g = g;
+    this.currentColor.b = b;
+
+  }
+
   view.onClick = function(event) {
-    xy = this.tileFromPoint(event.pageX, event.pageY, true);
+
+    xy = this.tileFromPoint(event.pageX, event.pageY - 100,  true);
+    if(xy.x != this.myTile.x || xy.y != this.myTile.y) {
+      console.log("No, can't write in other user tile")
+      return;
+    }
+
     console.log('TILE CLICK', xy)
-    this.tileViews[xy.x + '_' + xy.y].click(xy.tileX, xy.tileY, 0, 0, 0, 255);
+    this.tileViews[xy.x + '_' + xy.y].click(xy.tileX, xy.tileY, this.currentColor.r, this.currentColor.g, this.currentColor.b, 255);
   }
 
   view.onMousewheel = function(event, delta) {
+   if(!$('body').hasClass('welcome')) {
+     $('body').removeClass('zoomed-out zoomed-in welcome');
+     $('body').addClass('zoomed-out');
+     window.zoomedIn = false;
+   }
 
     var aspectRatio =  window.innerHeight / window.innerWidth;
 
     var dest = {
       x: this.viewport.x - (50 * delta * event.pageX / window.innerWidth)
-    , y: this.viewport.y - (50 * delta * event.pageY / window.innerHeight * aspectRatio)
+    , y: this.viewport.y - (50 * delta * (event.pageY - 100)/ window.innerHeight * aspectRatio)
     , w: this.viewport.w + (50 * delta)
     , h: this.viewport.h + (50 * delta * aspectRatio)
     }
@@ -112,9 +137,11 @@ define(
 
     this.canvas = this.$el[0];
     this.canvas.width = window.innerWidth;
-    this.canvas.height=  window.innerHeight
+    this.canvas.height=  window.innerHeight - 100;
 
     this.context = this.canvas.getContext('2d');
+    this.context.strokeStyle = '#333333';
+    this.context.lineWidth = 1;
 
     // disable image smoothing. even though it barely works.
     this.context.imageSmoothingEnabled = false;
@@ -125,7 +152,7 @@ define(
         x: 0
       , y: 0
       , w: window.innerWidth
-      , h: window.innerHeight
+      , h: window.innerHeight - 100
     }
 
 
@@ -257,9 +284,17 @@ define(
     var startX = Math.floor((-offset.x) * width);
     var startY = Math.floor((-offset.y) * height);
 
+
+    var myCanvasXY
+
     for(var x = 0; x < bottomRight.x + 1 - topLeft.x; x++ ){
       for(var y = 0; y < bottomRight.y + 1 - topLeft.y; y++){
         var v = that.tileViews[(topLeft.x + x)+'_'+(topLeft.y + y)] || that.blankTile
+        if(topLeft.x+x == window.myTile.x && topLeft.y + y == window.myTile.y)
+          myCanvasXY = {x: startX + Math.floor(x * width)
+                ,y: startY + Math.floor(y * height)
+                ,w: Math.ceil(width)
+                ,h: Math.ceil(height) }
         v.drawTile(
                   that.context
                 , startX + Math.floor(x * width)
@@ -269,7 +304,19 @@ define(
           )
         n++;
       }
-    }          
+    }       
+
+    // we're going to draw four lines, around our canvas, to indicate where it is.
+    // left
+    that.context.beginPath();
+    that.context.moveTo(myCanvasXY.x-1,myCanvasXY.y-1);
+    that.context.lineTo(myCanvasXY.x+myCanvasXY.w+1,myCanvasXY.y-1);
+    that.context.lineTo(myCanvasXY.x+myCanvasXY.w+1,myCanvasXY.y+myCanvasXY.h+1);
+    that.context.lineTo(myCanvasXY.x-1,myCanvasXY.y+myCanvasXY.h+1);
+    that.context.lineTo(myCanvasXY.x-1,myCanvasXY.y-1);
+    that.context.closePath();
+    that.context.stroke();
+
   }
 
   view.zoomToTile = function(x, y, duration) {
@@ -362,6 +409,8 @@ define(
     var that = this;
     _.bindAll(this);
 
+    this.myTile = window.myTile;
+
     this.tiles = new TilesCollection();
     this.tiles.fetch({error:function() {console.log('err')},success: function() {
 
@@ -388,7 +437,11 @@ define(
 
     this.activeAnimations = [];
 
+    this.currentColor = { r: 0, g: 62, b: 88 }
+
     Backbone.on('PaintTile', this.onPaintTile)
+    Backbone.on('Color', this.onColorChange)
+    Backbone.on('ZoomToTile', this.onZoomToUserTile)
 
   }
 

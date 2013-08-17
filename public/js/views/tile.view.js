@@ -38,10 +38,12 @@ define(
    *  PUBLIC CLASS METHODS                                                   *
    * ======================================================================= */
   view.click = function(x, y, r, g, b, a) {
+    console.log('click', r,g,b,a)
+
     this.imageData.data[(y * 32 * 4 + x * 4)] = r;
     this.imageData.data[(y * 32 * 4 + x * 4) + 1] = g;
     this.imageData.data[(y * 32 * 4 + x * 4) + 2] = b;
-    this.imageData.data[(y * 32 * 4 + x * 4) + 2] = a;
+    this.imageData.data[(y * 32 * 4 + x * 4) + 3] = a;
     this.context.putImageData(this.imageData,0,0);
 
     this.model.setPixel(x,y,r,g,b,a);
@@ -50,7 +52,7 @@ define(
   }
 
   view.drawTile = function(ctx, posX, posY, width, height) {
-    if(true){//width < 150 && height < 150) {
+    if(true){//width < 150 && height < 150) {      
       ctx.drawImage(
         this.canvas
         , 0
@@ -61,6 +63,9 @@ define(
         , posY
         , width
         , height)
+
+      ctx.restore();
+
     }
     /*else {
       // fillrect... 
