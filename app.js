@@ -8,27 +8,15 @@ var express       = require('express')
   , http          = require('http')
   , _             = require('underscore')
   , jade_browser  = require('jade-browser')
+  , redis         = require('redis')
+  , async         = require('async')
+  , client        = redis.createClient()
   ;
 
 /* Create the server */
 var app = express()
   , server = http.createServer(app)
   ;
-
-
-/* JUST in case mongo's being used.... */
-
-/* Connect to the database */
-/*
-var MONGO_SERVER = 'localhost'
-  , MONGO_DB_NAME = 'backbone'
-
-mongoose.connect('mongodb://' + MONGO_SERVER + '/' + MONGO_DB_NAME, { server : { poolSize : 3 } });
-mongoose.connection.on('error', function(err) {
-  console.log(err);
-});
-*/
-
 
 // Configuration
 app.configure(function(){
@@ -73,61 +61,147 @@ var io = require('socket.io').listen(server);
  * of the pages in mirror. our client-side model
  * and collection ioBinds will pick up these events
  */
-var nextId = 0;
-var items = [];
+
+var TILE_SIZE = 32;
 
 io.sockets.on('connection', function (socket) {
 
-  socket.on('items:create', function (data, callback) {
-    /* do something to 'create' the item */
-    console.log('CREATE ITEM', data)
+  socket.on('tiles:create', function (data, callback) {
+    // find a tile that is not taken,
+    // mark it as taken,
+    // return it back to the client.
 
-    var item = { text: data.text, id: nextId++ };
-    items.push(item);
+    var multi = redis_client.multi();
+    multi.get('NEXT_FREE_TILE_X');
+    multi.get('NEXT_FREE_TILE_Y');
+    multi.exec(function(err, values) {
+      if(err)
+        return console.error(err);
 
-    // echo the response
-    callback(null, item)
-    socket.broadcast.emit('items:create', item);
-    socket.emit('items:create', item);
+      var x = values[0];
+      var y = values[1];
+
+      var tile_data = [];
+      for(var i = 0; i < TILE_SIZE * TILE_SIZE * 4; i++)
+        tile_data.push(255);
+
+      redis_client.hset('TILE_DATA', x + '_' + y, tile_data, function(err) {
+        if(err)
+          console.error(err);
+      })
+
+      chooseNextFreeTile(x,y);
+
+      // echo the response
+      callback(null, {x: x, y: y})
+      socket.broadcast.emit('tiles:create', {x: x, y: y});
+      socket.emit('tiles:create', {x: x, y: y});
+    })
+
   });
 
-  socket.on('items:read', function (data, callback) {
+  socket.on('tiles:read', function (data, callback) {
     /* do something to 'read' the whatever */
-    if(data && data.id) {
-      callback(null, _.findWhere(items, { id: data.id }));
+    if(data && data.tile) {
+      redis_client.hget('TILE_DATA', data.id, function(err, result) {
+        callback(null, {
+          id: data.id
+        , tileData: result
+        });
+      })
     }
     else {
-      callback(null, items)
+      redis_client.hgetall('TILE_DATA', function(err, fieldvalues) {
+        var tiles = [];
+        for(var i = 0; i < fieldvalues.length; i+=2) {
+          var t = {}
+          t.id = fieldValues[i];
+          t.tileData = fieldValues[i+1];
+          tiles.push(t);
+        }
+        callback(null, tiles);
+      })
     }
   });
 
-  socket.on('items:update', function (data, callback) {
-    var item = _.findWhere(items, { id: data.id })
-    item.text = data.text;
-    socket.broadcast.emit('items/' + data.id + ':update', item);
-    callback(null, item);
-  });
+  socket.on('tiles:update', function (data, callback) {
+    redis_client.hget('TILE_DATA', data.id, function(err, result) {
 
-  socket.on('items:patch', function (data, callback) {
-    var item = _.findWhere(items, { id: data.id })
-    item.text = data.text;
-    socket.broadcast.emit('items/' + data.id + ':update', item);
-    callback(null, item);
-  });
+      if(!result)
+        return console.error('NO SUCH TILE, ', data.id)
+      // need to update the tile pixel.
+      var xy = data.id.split('_');
+      var x = xy[0];
+      var y = xy[1];
+      result[y * TILE_SIZE + x]       = data.pixel[0];
+      result[y * TILE_SIZE + x + 1]   = data.pixel[1];
+      result[y * TILE_SIZE + x + 2]   = data.pixel[2];
+      result[y * TILE_SIZE + x + 3]   = data.pixel[3];
 
-  socket.on('items:delete', function (data, callback) {
-    items = _.reject(items, function(i) { return i.id == data.id });
-    socket.broadcast.emit('items/' + data.id + ':delete', {id: data.id});
-    socket.emit('items/' + data.id + ':delete', {id: data.id});
-    callback(null, {id: data.id});    
-  });
+      redis_client.hset('TILE_DATA', data.id, result, function(err) {
+        if(err)
+          return console.error('failed to set tile ', data.id)
 
+        socket.broadcast.emit('tiles/' + data.id + ':update', {id: data.id, tileData: result});
+        callback(null, {id: data.id});
+      })
+    })
+  });
 });
+
+
+function chooseNextTile(x, y) {
+  // try to keep to the center.
+  if(x > 25)
+    dirX = [-1, 0, 1];
+  else
+    dirX = [1, 0, -1];
+
+  if(y > 25)
+    dirY = [-1, 0, 1];
+  else
+    dirY = [1, 0, -1];
+
+  var multi = redis_client.multi();
+
+  for (var i = dirX.length - 1; i >= 0; i--) {
+    for (var j = dirY.length - 1; j >= 0; j--) {
+      multi.hexists('TILE_DATA', (x + dirX[i]) + '_' + (y + dirY[j]));
+    };
+  };
+
+  multi.exec(function(err, results) {
+    if(err)
+      return console.error(err);
+    var n = 0;
+    for (var i = dirX.length - 1; i >= 0; i--) {
+      for (var j = dirY.length - 1; j >= 0; j--) {
+        n++;
+        if(!results[n]) {
+
+          var multi2 = redis_client.multi();
+          multi2.set('NEXT_FREE_TILE_X', x + dirX[i])
+          multi2.set('NEXT_FREE_TILE_Y', y + dirY[j])
+          multi.exec(function(){})
+        }
+      };
+    };
+  })
+  
+}
 
 // Routes
 app.get('/', routes.index);
 
+redis_client.get('NEXT_FREE_TILE_X', function(err, value) {
+  if(!value) {
+    var multi = redis_client.multi();
+    multi.set('NEXT_FREE_TILE_X', '25')
+    multi.set('NEXT_FREE_TILE_Y', '25')
+  }
+})
+
 if (!module.parent) {
   server.listen(3000);
-  console.log("Realtime nodejs socket.io boilerplate", app.settings.env);
+  console.log("Q - Collaborative Pixel Art", app.settings.env);
 }
