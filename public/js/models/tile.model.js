@@ -22,9 +22,19 @@ define(
       return 'tiles';
   }
 
+  model.ioUpdate = function(data) {
+
+    console.log('IOUPDATE:', data)
+    if(data.tileData)
+      this.tileData = this.QuickUnRLE(data.tileData);
+
+    this.trigger('IOUpdatePixel', data.pixelx, data.pixely, data.pixel[0],data.pixel[1],data.pixel[2],data.pixel[3])
+    //Backbone.trigger('PaintTile', this)
+
+  }
+
   model.parse = function(response) {
     //console.log('parse received', response.tileData)
-    console.log(response)
     if(response.tileData)
       this.tileData = this.QuickUnRLE(JSON.parse(response.tileData) );
 
@@ -40,14 +50,15 @@ define(
     return Backbone.Model.prototype.save.apply(this, arguments); 
   }
 
-  model.setPixel = function(x,y,r,g,b,a) {
+  model.setPixel = function(x,y,r,g,b,a,silent) {
     console.log('SETPIXEL', x, y, r, g, b, a)
     this.tileData[(y * 32 * 4 + x * 4)] = r;
     this.tileData[(y * 32 * 4 + x * 4) + 1] = g;
     this.tileData[(y * 32 * 4 + x * 4) + 2] = b;
     this.tileData[(y * 32 * 4 + x * 4) + 2] = a;
-
-    this.save({pixel: [r,g,b,a]});
+    this.set('pixelx', x)
+    this.set('pixely', y)
+    this.set('pixel', [r,g,b,a]);    
   }
 
   model.QuickUnRLE = function(rleData) {
@@ -125,6 +136,7 @@ define(
   
   model.initialize = function () {
     _.bindAll(this);
+    this.ioBind('update', this.ioUpdate);
   };
 
   model.constructor = function(attributes, options) {

@@ -44,9 +44,9 @@ define(
     this.imageData.data[(y * 32 * 4 + x * 4) + 2] = a;
     this.context.putImageData(this.imageData,0,0);
 
-    this.model.setPixel(x,y,r,g,b,a)
-
-    Backbone.trigger('PaintTile', this);
+    this.model.setPixel(x,y,r,g,b,a);
+    this.model.save();
+    Backbone.trigger('PaintTile', this)
   }
 
   view.drawTile = function(ctx, posX, posY, width, height) {
@@ -121,6 +121,14 @@ define(
     _.bindAll(this);
 
     this.model = options.model;
+    this.model.on('IOUpdatePixel', function(x,y,r,g,b,a) { 
+      that.imageData.data[(y * 32 * 4 + x * 4)] = r;
+      that.imageData.data[(y * 32 * 4 + x * 4) + 1] = g;
+      that.imageData.data[(y * 32 * 4 + x * 4) + 2] = b;
+      that.imageData.data[(y * 32 * 4 + x * 4) + 2] = a;      
+      that.context.putImageData(that.imageData,0,0);
+      Backbone.trigger('PaintTile', that) 
+    })
     this.canvas = document.createElement("canvas");
     this.canvas.width = 32;
     this.canvas.height = 32;

@@ -5,8 +5,9 @@ TODO
 - wire up collection read (DONE)
 - RLE encode tileData (DONE)
 - wire up setpixel (DONE)
-- iobind
+- iobind (DONE)
 - create the color picker dock
+- permissions: only edit YOUR tile.
 - create the 'zoom to tile' button
 - create the 'welcome' message
 - select color palette
