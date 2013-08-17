@@ -154,8 +154,8 @@ define(
     this.viewport = {
         x: 0
       , y: 0
-      , w: maxw
-      , h: maxh
+      , w: Math.floor(maxw / 3)
+      , h: Math.floor(maxh / 3)
     }
 
     console.log(this.viewport)
@@ -305,14 +305,16 @@ define(
 
     // we're going to draw four lines, around our canvas, to indicate where it is.
     // left
-    that.context.beginPath();
-    that.context.moveTo(myCanvasXY.x-1,myCanvasXY.y-1);
-    that.context.lineTo(myCanvasXY.x+myCanvasXY.w+1,myCanvasXY.y-1);
-    that.context.lineTo(myCanvasXY.x+myCanvasXY.w+1,myCanvasXY.y+myCanvasXY.h+1);
-    that.context.lineTo(myCanvasXY.x-1,myCanvasXY.y+myCanvasXY.h+1);
-    that.context.lineTo(myCanvasXY.x-1,myCanvasXY.y-1);
-    that.context.closePath();
-    that.context.stroke();
+    if(myCanvasXY) {
+      that.context.beginPath();
+      that.context.moveTo(myCanvasXY.x-1,myCanvasXY.y-1);
+      that.context.lineTo(myCanvasXY.x+myCanvasXY.w+1,myCanvasXY.y-1);
+      that.context.lineTo(myCanvasXY.x+myCanvasXY.w+1,myCanvasXY.y+myCanvasXY.h+1);
+      that.context.lineTo(myCanvasXY.x-1,myCanvasXY.y+myCanvasXY.h+1);
+      that.context.lineTo(myCanvasXY.x-1,myCanvasXY.y-1);
+      that.context.closePath();
+      that.context.stroke(); 
+    }
 
   }
 
@@ -410,6 +412,7 @@ define(
 
     this.initializeBlankTile();
     this.myTile = window.myTile;
+    console.log('MY TILE', this.myTile)
 
     this.tiles = new TilesCollection();
     this.tiles.fetch({error:function() {console.log('err')},success: function() {

@@ -28,11 +28,17 @@ define(
     'click .color'        : 'onSelectColor'
   , 'click .get-started'  : 'onZoomToTile'
   , 'click .take-me-back' : 'onZoomToTile'
+  , 'click .auto-mirror'  : 'onAutoMirrorChange'
   }
 
   /* ======================================================================= *
    *  EVENT HANDLERS                                                         *
    * ======================================================================= */  
+
+  view.onAutoMirrorChange = function() {
+    Backbone.trigger('AutoMirrorChanged', this.$('.auto-mirror').is(':checked'))
+  }
+
   view.onZoomToTile = function(e) {
     Backbone.trigger('ZoomToTile');
     $('body').removeClass('zoomed-out zoomed-in welcome');

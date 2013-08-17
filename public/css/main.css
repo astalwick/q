@@ -24,6 +24,10 @@ canvas {
   top: 100px;
 }
 
+.dock label {
+  display: inline-block;
+  padding-right:10px;
+}
 .dock {
   position: fixed;
   top: 0;

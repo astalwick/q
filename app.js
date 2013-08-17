@@ -141,7 +141,6 @@ io.sockets.on('connection', function (socket) {
     // CUT MY LOSSES:
     // we'll just fully update.
 
-
     redis_client.hset('TILE_DATA', data.id, JSON.stringify(data.tileData), function(err) {
       if(err)
         return console.error('failed to set tile ', data.id)
@@ -194,38 +193,46 @@ function chooseNextFreeTile(x, y) {
   x = parseInt(x)
   y = parseInt(y)
   
+    if(dir < 3)
+      dir++;
+    else 
+      dir = 0;
 
-  if(dir < 3)
-    dir++;
-  else 
-    dir = 0;
 
-  var dirX = 0;
-  var dirY = 0;
-  if(dir == 0) {
-    // try going up.
-    dirY = -1;
-  }
-  else if(dir == 1) {
-    // try going left
-    dirX = -1;
-  }
-  else if(dir == 2) {
-    // try going down.
-    dirY = 1
-  }
-  else if(dir == 3) {
-    // try going right
-    dirY = 1
-  }
+    var dirX = 0;
+    var dirY = 0;
+    if(dir == 0) {
+      // try going up.
+      dirY = -1;
+    }
+    else if(dir == 1) {
+      // try going left
+      dirX = -1;
+    }
+    else if(dir == 2) {
+      // try going down.
+      dirY = 1
+    }
+    else if(dir == 3) {
+      // try going right
+      dirX = 1;
+    }    
+  
+
 
   var exists = true;
   async.doWhilst(function(callback) {
     x += dirX;
     y += dirY;
+    if(x < 0 || y < 0) {
+      console.log('went negative.  not cool')
+      x = Math.floor(Math.random()*15)
+      y = Math.floor(Math.random()*15)
+    }    
     redis_client.hexists('TAKEN_TILES', x + '_' + y, function(err, result) {
       console.log(err, result);
       exists = !!result;
+
       callback(err);
     })
   }, function() {
@@ -266,8 +273,8 @@ app.get('/', function(req, res){
 redis_client.get('NEXT_FREE_TILE_X', function(err, value) {
   if(!value) {
     var multi = redis_client.multi();
-    multi.set('NEXT_FREE_TILE_X', '10')
-    multi.set('NEXT_FREE_TILE_Y', '10')
+    multi.set('NEXT_FREE_TILE_X', '4')
+    multi.set('NEXT_FREE_TILE_Y', '4')
     multi.exec();
   }
 })

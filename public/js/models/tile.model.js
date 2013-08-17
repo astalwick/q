@@ -57,7 +57,7 @@ define(
     this.tileData[(y * Config.TILE_SIZE * 4 + x * 4)] = r;
     this.tileData[(y * Config.TILE_SIZE * 4 + x * 4) + 1] = g;
     this.tileData[(y * Config.TILE_SIZE * 4 + x * 4) + 2] = b;
-    this.tileData[(y * Config.TILE_SIZE * 4 + x * 4) + 2] = a;
+    this.tileData[(y * Config.TILE_SIZE * 4 + x * 4) + 3] = a;
     this.set('pixelx', x)
     this.set('pixely', y)
     this.set('pixel', [r,g,b,a]);    

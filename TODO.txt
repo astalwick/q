@@ -9,10 +9,9 @@ TODO
 - select color palette (SORT OF DONE)
 - permissions: only edit YOUR tile. (DONE)
 - create the 'zoom to tile' button (DONE)
-
+- reduce pixels per tile to 16. (DONE)
 
 - pixel aspect ratio (should be fixed)
 - add setpixel automirror
-- optimize page load
-  - reduce number of tiles loaded from 50x50 to 25x25, and make the min zoom 2x.
-  - reduce pixels per tile to 16.
+
+- CLEAN UP THE GLOBALS!
