@@ -10,7 +10,7 @@ var express       = require('express')
   , jade_browser  = require('jade-browser')
   , redis         = require('redis')
   , async         = require('async')
-  , client        = redis.createClient()
+  , redis_client  = redis.createClient()
   ;
 
 /* Create the server */
@@ -82,6 +82,7 @@ io.sockets.on('connection', function (socket) {
       var y = values[1];
 
       var tile_data = [];
+      // initialize the tile.
       for(var i = 0; i < TILE_SIZE * TILE_SIZE * 4; i++)
         tile_data.push(255);
 
@@ -203,5 +204,5 @@ redis_client.get('NEXT_FREE_TILE_X', function(err, value) {
 
 if (!module.parent) {
   server.listen(3000);
-  console.log("Q - Collaborative Pixel Art", app.settings.env);
+  console.log("Q - Collaborative Pixel Art - env:" + app.settings.env);
 }
