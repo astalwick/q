@@ -46,7 +46,7 @@ define(
   }
 
   view.onZoomToUserTile = function() {
-    this.zoomToTile(this.myTile.x, this.myTile.y, 2000);
+    this.zoomToTile(this.myTile.x, this.myTile.y, 750);
 
 
   }
