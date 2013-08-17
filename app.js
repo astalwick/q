@@ -118,19 +118,24 @@ io.sockets.on('connection', function (socket) {
       })
     }
     else {
-      redis_client.hgetall('TILE_DATA', function(err, fieldvalues) {
+      redis_client.hgetall('TILE_DATA', function(err, fieldValues) {
         var tiles = [];
-        if(!fieldvalues)
+        if(!fieldValues) {
+          console.log('no tile data');
           return callback(null, tiles);
-        for(var i = 0; i < fieldvalues.length; i+=2) {
-          var t = {}
-          var xy = fieldValues[i].split('_');
-          t.id = fieldValues[i];
-          t.tileData = fieldValues[i+1];
-          t.x = xy[0];
-          t.y = xy[1];          
-          tiles.push(t);
         }
+
+        for(var x = 0; x < 50; x++) {
+          for(var y = 0; y < 50; y++) {
+            var t = {}
+            t.id = x + '_' + y;
+            t.tileData = fieldValues[t.id];
+            t.x = x;
+            t.y = y
+            tiles.push(t);
+          }
+        }
+        console.log('tiles', tiles)
         callback(null, tiles);
       })
     }
@@ -139,18 +144,24 @@ io.sockets.on('connection', function (socket) {
   socket.on('tiles:update', function (data, callback) {
     redis_client.hget('TILE_DATA', data.id, function(err, result) {
 
+      result = JSON.parse(result);
       if(!result)
         return console.error('NO SUCH TILE, ', data.id)
       // need to update the tile pixel.
       var xy = data.id.split('_');
       var x = xy[0];
       var y = xy[1];
-      result[y * TILE_SIZE + x]       = data.pixel[0];
-      result[y * TILE_SIZE + x + 1]   = data.pixel[1];
-      result[y * TILE_SIZE + x + 2]   = data.pixel[2];
-      result[y * TILE_SIZE + x + 3]   = data.pixel[3];
 
-      redis_client.hset('TILE_DATA', data.id, result, function(err) {
+      var tileData = QuickUnRLE(result);
+
+      tileData[y * TILE_SIZE + x]       = data.pixel[0];
+      tileData[y * TILE_SIZE + x + 1]   = data.pixel[1];
+      tileData[y * TILE_SIZE + x + 2]   = data.pixel[2];
+      tileData[y * TILE_SIZE + x + 3]   = data.pixel[3];
+
+      result = QuickRLE(tileData);
+
+      redis_client.hset('TILE_DATA', data.id, JSON.stringify(result), function(err) {
         if(err)
           return console.error('failed to set tile ', data.id)
 
@@ -227,6 +238,93 @@ redis_client.get('NEXT_FREE_TILE_X', function(err, value) {
     multi.exec();
   }
 })
+
+// initialize some fake tile data.
+for(var x = 0; x < 50; x++) {
+  var tileBlue = x*5;
+   
+  for(var y = 0; y < 50; y++) {    
+    var tileRed = y*5;
+
+    var tileData = [];
+    for(var n=0; n < 32 * 32 * 4; n+=4) {
+      tileData[n] = tileRed;
+      tileData[n + 1] = 0;
+      tileData[n + 2] = tileBlue;
+      tileData[n + 3] = 255;
+    }
+    redis_client.hset('TILE_DATA', x+'_'+y, JSON.stringify(QuickRLE(tileData)) );
+  }
+}
+
+function QuickUnRLE(rleData) {
+  var tileData = []
+
+  for(var i = 0; i < rleData.length; i++) {
+
+    for(var j = 0; j < rleData[i].run; j++) {
+      tileData.push(rleData[i].data[0])
+      tileData.push(rleData[i].data[1])
+      tileData.push(rleData[i].data[2])
+      tileData.push(rleData[i].data[3])
+    }
+  }
+
+  return tileData;
+}
+
+function QuickRLE(tileData) {
+  var rleTileData = []
+  var last;
+  var run = 0;
+  for(var i = 0; i+3 < tileData.length; i += 4) {
+    if(i == 0) {
+      // start our first run.
+      last = []
+
+      last[0] = tileData[i];
+      last[1] = tileData[i + 1];
+      last[2] = tileData[i + 2];
+      last[3] = tileData[i + 3];
+      run = 1;
+    }
+    else if( last[0] != tileData[i] &&
+      last[1] != tileData[i + 1] &&
+      last[2] != tileData[i + 2] &&
+      last[3] != tileData[i + 3]) {
+
+      // no match.
+      // push it into the rleTileData objects
+      rleTileData.push({
+        data: last  
+      , run: run
+      })
+
+      // this pixel is different.
+      // start a new run.
+      if(i+3 < tileData.length) {
+        run = 1;
+        last = []
+
+        last[0] = tileData[i];
+        last[1] = tileData[i + 1];
+        last[2] = tileData[i + 2];
+        last[3] = tileData[i + 3];
+      }
+    }
+    else if(i + 4 == tileData.length) {
+      run++;
+      rleTileData.push({
+        data: last  
+      , run: run
+      })
+    }
+    else {
+      run++;
+    }
+  }
+  return rleTileData;
+}
 
 if (!module.parent) {
   server.listen(3000);

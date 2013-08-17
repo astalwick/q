@@ -129,7 +129,7 @@ define(
     this.imageData = this.context.createImageData(32,32);
 
     for(var i = 0; i < 32 * 32 * 4; i++) {
-      this.imageData.data[i] = this.model.attributes['tileData'][i];
+      this.imageData.data[i] = this.model.tileData[i];
     }
     this.context.putImageData(this.imageData,0,0);
   }

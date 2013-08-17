@@ -9,7 +9,7 @@ define(
     _
   , Backbone
 
-  , ItemModel
+  , TileModel
 ) {
 
   var collection = {};
@@ -17,12 +17,16 @@ define(
   /* ======================================================================= *
    *  ATTRIBUTES                                                             *
    * ======================================================================= */
-  collection.model = ItemModel;
+  collection.model = TileModel;
 
   /* ======================================================================= *
    *  PUBLIC CLASS METHODS                                                   *
    * ======================================================================= */
 
+  collection.parse = function(response) {
+    console.log(response)
+    return Backbone.Collection.prototype.parse.call(this, response);
+  }
   /* eventually, when we support multiple canvases, put this back in  */
   /*collection.fetch = function(options) {
     options               || (options = {});

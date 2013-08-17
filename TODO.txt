@@ -1,0 +1,12 @@
+TODO
+
+
+
+- wire up collection read (DONE)
+- RLE encode tileData (DONE)
+- wire up setpixel
+- create the color picker dock
+- create the 'zoom to tile' button
+- create the 'welcome' message
+- select color palette
+- pixel aspect ratio (should be fixed)

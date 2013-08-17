@@ -41,6 +41,7 @@ define(
    *  EVENT HANDLERS                                                         *
    * ======================================================================= */  
   view.addTileView = function(model) {
+    //console.log('tileview')
     this.tileViews[model.id] = new TileView({model: model});
   }
 
@@ -128,24 +129,7 @@ define(
       , h: window.innerHeight
     }
 
-    this.paint();
 
-    var that = this;
-    function animLoop(time) {
-      if(that.activeAnimations.length == 0) {
-        requestAnimationFrame(animLoop);
-        return;
-      }
-      var continuedAnimations = []
-      _.each(that.activeAnimations, function(anim) {
-          if(anim(time))
-            continuedAnimations.push(anim);
-      })
-      that.activeAnimations = continuedAnimations;
-      requestAnimationFrame(animLoop);
-    }
-
-    requestAnimationFrame(animLoop);
 
     /*setTimeout(function() {
       that.zoomToRect(500, 500, 32, 32, 1000);
@@ -380,18 +364,28 @@ define(
     _.bindAll(this);
 
     this.tiles = new TilesCollection();
-    this.tiles.fetch();
+    this.tiles.fetch({error:function() {console.log('err')},success: function() {
+
+      that.paint();
+      
+      function animLoop(time) {
+        if(that.activeAnimations.length == 0) {
+          requestAnimationFrame(animLoop);
+          return;
+        }
+        var continuedAnimations = []
+        _.each(that.activeAnimations, function(anim) {
+            if(anim(time))
+              continuedAnimations.push(anim);
+        })
+        that.activeAnimations = continuedAnimations;
+        requestAnimationFrame(animLoop);
+      }
+
+      requestAnimationFrame(animLoop);      
+    }});
     this.tiles.on('add', this.addTileView);
     this.tileViews = {};
-    this.initializeFakeTiles();
-
-    this.myTile = new TileModel();
-    this.myTile.save([],{ success: function() {
-
-      console.log(that.myTile.get('x'), that.myTile.get('y'))
-      that.zoomToTile(that.myTile.get('x'), that.myTile.get('y'), 2000)
-    }});
-    
 
     this.activeAnimations = [];
 
