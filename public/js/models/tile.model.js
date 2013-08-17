@@ -17,9 +17,9 @@ define(
 
   model.url = function() {
     if(this.get('id'))
-      return 'items/' + this.get('id');
+      return 'tiles/' + this.get('id');
     else
-      return 'items';
+      return 'tiles';
   }
 
   /* ======================================================================= *

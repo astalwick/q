@@ -3,7 +3,7 @@ define(
     'underscore'
   , 'backbone'
 
-  , '../models/item.model'
+  , '../models/tile.model'
   ]
 , function(
     _
@@ -22,13 +22,15 @@ define(
   /* ======================================================================= *
    *  PUBLIC CLASS METHODS                                                   *
    * ======================================================================= */
-  collection.fetch = function(options) {
+
+  /* eventually, when we support multiple canvases, put this back in  */
+  /*collection.fetch = function(options) {
     options               || (options = {});
     options.data          || (options.data = {})
     options.data.itemId   || (options.data.itemId = this.itemId)
 
     Backbone.Collection.prototype.fetch.call(this, options);
-  }   
+  } */  
 
   /* ======================================================================= *
    *  PULSE COLLECTION CONSTRUCTOR & INITIALIZATION                          *
@@ -36,8 +38,8 @@ define(
   collection.constructor = function(models, options) {
     _.bindAll(this);
     
-    this.url = 'items';
-    this.itemId = options.itemId;
+    this.url = 'tiles';
+
 
     Backbone.Collection.call(this, models, options);
   }
