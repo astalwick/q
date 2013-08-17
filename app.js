@@ -43,7 +43,7 @@ app.configure('production', function(){
 
 
 // Socket.io
-var io = require('socket.io').listen(server, { log : app.setting.env != 'production' });
+var io = require('socket.io').listen(server, { log : app.settings.env != 'production' });
 
 /**
  * our socket transport events
