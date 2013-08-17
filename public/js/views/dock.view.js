@@ -94,10 +94,10 @@ define(
         hex = '#583f2a';
         break;
       case 'gl':
-        hex = '#3c200b';
+        hex = '#ffffff';
         break;        
       case 'hl':
-        hex = '#ffffff'
+        hex = '#000000'
         break;                  
     }
 
