@@ -1,5 +1,5 @@
 {
-  "name": "realtime.node.boilerplate"
+  "name": "q"
 , "version": "0.0.1"
 
 , "author": "Arlen Stalwick <arlen@nsono.net>"
@@ -15,5 +15,6 @@
     , "express"             : "3.x"
     , "jade"                : "0.30.x"
     , "jade-browser"        : "0.x"
+    , "redis"               : "0.x"
   }
 }
