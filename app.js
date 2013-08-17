@@ -270,41 +270,38 @@ app.get('/', function(req, res){
   
 });
 
-redis_client.get('NEXT_FREE_TILE_X', function(err, value) {
-  if(!value) {
+redis_client.exists('NEXT_FREE_TILE_X', function(err, exists) {
+  if(!exists) {
+
     var multi = redis_client.multi();
     multi.set('NEXT_FREE_TILE_X', '4')
     multi.set('NEXT_FREE_TILE_Y', '4')
     multi.exec();
+
+    // initialize some empty tile data.
+    for(var x = 0; x < 50; x++) {
+
+      
+      var tileBlue = x*5;
+       
+      for(var y = 0; y < 50; y++) {    
+        var tileRed = y*5;
+
+        var tileData = [];
+        for(var n=0; n < TILE_SIZE * TILE_SIZE * 4; n+=4) {
+
+          tileData[n] = 255;
+          tileData[n + 1] = 255;
+          tileData[n + 2] = 255;
+          tileData[n + 3] = 255;
+
+        }
+        redis_client.hset('TILE_DATA', x+'_'+y, JSON.stringify(QuickRLE(tileData)) );
+      }
+    }
+
   }
 })
-
-
-// initialize some fake tile data.
-for(var x = 0; x < 50; x++) {
-
-  
-  var tileBlue = x*5;
-   
-  for(var y = 0; y < 50; y++) {    
-    var tileRed = y*5;
-
-    var tileData = [];
-    for(var n=0; n < TILE_SIZE * TILE_SIZE * 4; n+=4) {
-      /*tileData[n] = tileRed;
-      tileData[n + 1] = 0;
-      tileData[n + 2] = tileBlue;
-      tileData[n + 3] = 255;*/
-
-      tileData[n] = 255;
-      tileData[n + 1] = 255;
-      tileData[n + 2] = 255;
-      tileData[n + 3] = 255;
-
-    }
-    redis_client.hset('TILE_DATA', x+'_'+y, JSON.stringify(QuickRLE(tileData)) );
-  }
-}
 
 function QuickUnRLE(rleData) {
     var tileData = []
