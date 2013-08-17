@@ -52,19 +52,19 @@ define(
     var hex;
     switch(color) {
       case 'ad':
-        hex = '#003e58';
+        hex = '#E8DDCB';
         break;
       case 'bd':
-        hex = '#05dbf5';
+        hex = '#CDB380';
         break;
       case 'cd':
-        hex = '#42f0f6';
+        hex = '#036564';
         break;
       case 'dd':
-        hex = '#583f2a';
+        hex = '#033649';
         break;
       case 'ed':
-        hex = '#3c200b';
+        hex = '#031634';
         break;
       case 'fd':
         hex = '#003e58';

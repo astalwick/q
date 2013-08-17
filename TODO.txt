@@ -10,8 +10,7 @@ TODO
 - permissions: only edit YOUR tile. (DONE)
 - create the 'zoom to tile' button (DONE)
 - reduce pixels per tile to 16. (DONE)
+- add setpixel automirror (DONE)
 
 - pixel aspect ratio (should be fixed)
-- add setpixel automirror
-
 - CLEAN UP THE GLOBALS!
