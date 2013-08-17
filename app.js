@@ -100,6 +100,7 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('tiles:read', function (data, callback) {
     /* do something to 'read' the whatever */
+
     if(data && data.tile) {
       redis_client.hget('TILE_DATA', data.id, function(err, result) {
         var xy = data.id.split('_');
@@ -112,7 +113,9 @@ io.sockets.on('connection', function (socket) {
       })
     }
     else {
+      console.log('READ hgetall')
       redis_client.hgetall('TILE_DATA', function(err, fieldValues) {
+
         var tiles = [];
         if(!fieldValues) {
           console.log('no tile data');
@@ -129,18 +132,19 @@ io.sockets.on('connection', function (socket) {
             tiles.push(t);
           }
         }
-        console.log('tiles', tiles)
+        
         callback(null, tiles);
       })
     }
   });
 
   socket.on('tiles:update', function (data, callback) {
-    console.log('UPDATE', data)
+    
 
     // CUT MY LOSSES:
     // we'll just fully update.
 
+    console.log('UPDATE pixel', data.pixelx, data.pixely, data.pixel)
     redis_client.hset('TILE_DATA', data.id, JSON.stringify(data.tileData), function(err) {
       if(err)
         return console.error('failed to set tile ', data.id)
@@ -230,7 +234,7 @@ function chooseNextFreeTile(x, y) {
       y = Math.floor(Math.random()*15)
     }    
     redis_client.hexists('TAKEN_TILES', x + '_' + y, function(err, result) {
-      console.log(err, result);
+      if(err) console.log(err, result);
       exists = !!result;
 
       callback(err);
@@ -239,7 +243,7 @@ function chooseNextFreeTile(x, y) {
     return exists;
   }
   , function() {
-    console.log('next', x, y)
+    console.log('Next Tile Selected: ', x, y)
 
     var multi2 = redis_client.multi();
     multi2.set('NEXT_FREE_TILE_X', x)
