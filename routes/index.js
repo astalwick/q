@@ -5,5 +5,5 @@ var _     = require('underscore')
  */
 
 exports.index = function(req, res){
-  res.render('index', { title: 'REALTIME boilerplate', layout: false });
+  res.render('index', { title: 'Q - Collaborative Pixel Art', layout: false });
 };

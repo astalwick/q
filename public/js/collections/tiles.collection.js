@@ -40,7 +40,6 @@ define(
     
     this.url = 'tiles';
 
-
     Backbone.Collection.call(this, models, options);
   }
 

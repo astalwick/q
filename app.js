@@ -91,12 +91,15 @@ io.sockets.on('connection', function (socket) {
           console.error(err);
       })
 
-      chooseNextFreeTile(x,y);
+      
 
       // echo the response
-      callback(null, {x: x, y: y})
-      socket.broadcast.emit('tiles:create', {x: x, y: y});
-      socket.emit('tiles:create', {x: x, y: y});
+      callback(null, {id: x + '_' + y, tileData: tile_data, x: x, y: y})
+      socket.broadcast.emit('tiles:create', {id: x + '_' + y, tileData: tile_data, x: x, y: y});
+      socket.emit('tiles:create', {id: x + '_' + y, tileData: tile_data, x: x, y: y});
+
+      console.log('SAVED MY TILE', x, y)
+      chooseNextFreeTile(x,y);
     })
 
   });
@@ -105,19 +108,27 @@ io.sockets.on('connection', function (socket) {
     /* do something to 'read' the whatever */
     if(data && data.tile) {
       redis_client.hget('TILE_DATA', data.id, function(err, result) {
+        var xy = data.id.split('_');
         callback(null, {
           id: data.id
         , tileData: result
+        , x : xy[0]
+        , y: xy[1]
         });
       })
     }
     else {
       redis_client.hgetall('TILE_DATA', function(err, fieldvalues) {
         var tiles = [];
+        if(!fieldvalues)
+          return callback(null, tiles);
         for(var i = 0; i < fieldvalues.length; i+=2) {
           var t = {}
+          var xy = fieldValues[i].split('_');
           t.id = fieldValues[i];
           t.tileData = fieldValues[i+1];
+          t.x = xy[0];
+          t.y = xy[1];          
           tiles.push(t);
         }
         callback(null, tiles);
@@ -150,45 +161,59 @@ io.sockets.on('connection', function (socket) {
   });
 });
 
+dir = 0;
 
-function chooseNextTile(x, y) {
+function chooseNextFreeTile(x, y) {
   // try to keep to the center.
-  if(x > 25)
-    dirX = [-1, 0, 1];
-  else
-    dirX = [1, 0, -1];
-
-  if(y > 25)
-    dirY = [-1, 0, 1];
-  else
-    dirY = [1, 0, -1];
-
-  var multi = redis_client.multi();
-
-  for (var i = dirX.length - 1; i >= 0; i--) {
-    for (var j = dirY.length - 1; j >= 0; j--) {
-      multi.hexists('TILE_DATA', (x + dirX[i]) + '_' + (y + dirY[j]));
-    };
-  };
-
-  multi.exec(function(err, results) {
-    if(err)
-      return console.error(err);
-    var n = 0;
-    for (var i = dirX.length - 1; i >= 0; i--) {
-      for (var j = dirY.length - 1; j >= 0; j--) {
-        n++;
-        if(!results[n]) {
-
-          var multi2 = redis_client.multi();
-          multi2.set('NEXT_FREE_TILE_X', x + dirX[i])
-          multi2.set('NEXT_FREE_TILE_Y', y + dirY[j])
-          multi.exec(function(){})
-        }
-      };
-    };
-  })
+  x = parseInt(x)
+  y = parseInt(y)
   
+
+  if(dir < 3)
+    dir++;
+  else 
+    dir = 0;
+
+  var dirX = 0;
+  var dirY = 0;
+  if(dir == 0) {
+    // try going up.
+    dirY = -1;
+  }
+  else if(dir == 1) {
+    // try going left
+    dirX = -1;
+  }
+  else if(dir == 2) {
+    // try going down.
+    dirY = 1
+  }
+  else if(dir == 3) {
+    // try going right
+    dirY = 1
+  }
+
+  var exists = true;
+  async.doWhilst(function(callback) {
+    x += dirX;
+    y += dirY;
+    redis_client.hexists('TILE_DATA', x + '_' + y, function(err, result) {
+      console.log(err, result);
+      exists = !!result;
+      callback(err);
+    })
+  }, function() {
+    return exists;
+  }
+  , function() {
+    console.log('next', x, y)
+
+    var multi2 = redis_client.multi();
+    multi2.set('NEXT_FREE_TILE_X', x)
+    multi2.set('NEXT_FREE_TILE_Y', y)
+    multi2.exec(function(){})    
+
+  });  
 }
 
 // Routes
@@ -199,6 +224,7 @@ redis_client.get('NEXT_FREE_TILE_X', function(err, value) {
     var multi = redis_client.multi();
     multi.set('NEXT_FREE_TILE_X', '25')
     multi.set('NEXT_FREE_TILE_Y', '25')
+    multi.exec();
   }
 })
 

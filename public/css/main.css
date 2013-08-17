@@ -7,7 +7,13 @@ html {
   box-sizing: border-box;
 }
 
-body {
-  margin:0;
-  padding:0;
+body, html, div {
+  margin:0px;
+  padding: 0px;
+  border:0 none;
+  overflow:hidden;
+}
+
+canvas {
+  background-color: white;
 }
