@@ -12,3 +12,4 @@ TODO
 - select color palette
 - pixel aspect ratio (should be fixed)
 - add setpixel automirror
+- optimize page load

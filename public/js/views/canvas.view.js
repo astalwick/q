@@ -57,7 +57,6 @@ define(
   }
 
   view.onMousewheel = function(event, delta) {
-    console.log('hello', delta)
 
     var aspectRatio =  window.innerHeight / window.innerWidth;
 
