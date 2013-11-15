@@ -378,8 +378,8 @@ function QuickRLE(tileData) {
 
 if (!module.parent) {
   if(app.settings.env == 'production')
-    server.listen(80);
+    server.listen(3500);
   else
-    server.listen(3000);
+    server.listen(3500);
   console.log("Q - Collaborative Pixel Art - env:" + app.settings.env);
 }
